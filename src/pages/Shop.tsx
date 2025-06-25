@@ -1,14 +1,64 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { supabase } from '@/integrations/supabase/client';
+import { useCart } from '@/contexts/CartContext';
+import { toast } from '@/components/ui/use-toast';
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  category: string;
+  sizes: string[];
+}
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
   const [activeCategory, setActiveCategory] = useState(categoryParam || 'men');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
+
+  const categories = [
+    { id: 'men', name: "Men's Collection" },
+    { id: 'women', name: "Women's Heels" },
+    { id: 'kids', name: "Kids' Footwear" },
+    { id: 'sneakers', name: "Trendy Sneakers" }
+  ];
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   // Update active category when URL parameter changes
   useEffect(() => {
@@ -17,120 +67,26 @@ const Shop = () => {
     }
   }, [categoryParam]);
 
-  const products = [
-    // Men's Collection
-    {
-      id: 1,
-      name: "Classic Oxford Shoes",
-      category: "men",
-      price: 2999,
-      image: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=400&h=300&fit=crop&crop=center",
-      sizes: ["7", "8", "9", "10", "11"],
-      description: "Premium leather Oxford shoes for formal occasions"
-    },
-    {
-      id: 2,
-      name: "Casual Loafers",
-      category: "men",
-      price: 2499,
-      image: "https://images.unsplash.com/photo-1582897085656-c636d006a246?w=400&h=300&fit=crop&crop=center",
-      sizes: ["7", "8", "9", "10", "11"],
-      description: "Comfortable leather loafers for everyday wear"
-    },
-    {
-      id: 3,
-      name: "Formal Derby Shoes",
-      category: "men",
-      price: 3499,
-      image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=400&h=300&fit=crop&crop=center",
-      sizes: ["7", "8", "9", "10", "11"],
-      description: "Elegant derby shoes perfect for business meetings"
-    },
-    // Women's Heels
-    {
-      id: 4,
-      name: "Elegant High Heels",
-      category: "women",
-      price: 3299,
-      image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=300&fit=crop&crop=center",
-      sizes: ["5", "6", "7", "8", "9"],
-      description: "Stylish high heels for special occasions"
-    },
-    {
-      id: 5,
-      name: "Block Heel Pumps",
-      category: "women",
-      price: 2799,
-      image: "https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?w=400&h=300&fit=crop&crop=center",
-      sizes: ["5", "6", "7", "8", "9"],
-      description: "Comfortable block heel pumps for office wear"
-    },
-    {
-      id: 6,
-      name: "Strappy Sandals",
-      category: "women",
-      price: 2299,
-      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center",
-      sizes: ["5", "6", "7", "8", "9"],
-      description: "Trendy strappy sandals for summer outings"
-    },
-    // Kids' Footwear
-    {
-      id: 7,
-      name: "Colorful School Shoes",
-      category: "kids",
-      price: 1599,
-      image: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=400&h=300&fit=crop&crop=center",
-      sizes: ["1", "2", "3", "4", "5"],
-      description: "Durable and comfortable school shoes for kids"
-    },
-    {
-      id: 8,
-      name: "Fun Character Boots",
-      category: "kids",
-      price: 1899,
-      image: "https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?w=400&h=300&fit=crop&crop=center",
-      sizes: ["1", "2", "3", "4", "5"],
-      description: "Waterproof boots with fun character designs"
-    },
-    // Trendy Sneakers
-    {
-      id: 9,
-      name: "Running Sneakers",
-      category: "sneakers",
-      price: 3999,
-      image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=300&fit=crop&crop=center",
-      sizes: ["6", "7", "8", "9", "10", "11"],
-      description: "High-performance running sneakers with cushioned sole"
-    },
-    {
-      id: 10,
-      name: "Casual Street Sneakers",
-      category: "sneakers",
-      price: 2999,
-      image: "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=400&h=300&fit=crop&crop=center",
-      sizes: ["6", "7", "8", "9", "10", "11"],
-      description: "Stylish street sneakers for casual outings"
-    },
-    {
-      id: 11,
-      name: "High-Top Sneakers",
-      category: "sneakers",
-      price: 3499,
-      image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400&h=300&fit=crop&crop=center",
-      sizes: ["6", "7", "8", "9", "10", "11"],
-      description: "Classic high-top sneakers with modern comfort"
-    }
-  ];
-
-  const categories = [
-    { id: 'men', name: "Men's Collection", count: products.filter(p => p.category === 'men').length },
-    { id: 'women', name: "Women's Heels", count: products.filter(p => p.category === 'women').length },
-    { id: 'kids', name: "Kids' Footwear", count: products.filter(p => p.category === 'kids').length },
-    { id: 'sneakers', name: "Trendy Sneakers", count: products.filter(p => p.category === 'sneakers').length }
-  ];
-
   const filteredProducts = products.filter(product => product.category === activeCategory);
+  const categoryCount = (categoryId: string) => products.filter(p => p.category === categoryId).length;
+
+  const handleAddToCart = async (productId: string, productName: string) => {
+    await addToCart(productId);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-muthu-warm-white">
+        <Header />
+        <div className="pt-20 pb-16">
+          <div className="container mx-auto px-4">
+            <p className="text-center text-lg">Loading products...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muthu-warm-white">
@@ -161,7 +117,7 @@ const Shop = () => {
                       : "border-muthu-brown text-muthu-brown hover:bg-muthu-brown hover:text-white"
                   }`}
                 >
-                  {category.name} ({category.count})
+                  {category.name} ({categoryCount(category.id)})
                 </Button>
               ))}
             </div>
@@ -176,7 +132,7 @@ const Shop = () => {
                   <CardContent className="p-0">
                     <div className="relative overflow-hidden rounded-t-lg">
                       <img
-                        src={product.image}
+                        src={product.image_url}
                         alt={product.name}
                         className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
                       />
@@ -204,7 +160,10 @@ const Shop = () => {
                           ))}
                         </div>
                       </div>
-                      <Button className="w-full bg-muthu-brown hover:bg-muthu-dark-brown text-white">
+                      <Button 
+                        className="w-full bg-muthu-brown hover:bg-muthu-dark-brown text-white"
+                        onClick={() => handleAddToCart(product.id, product.name)}
+                      >
                         Add to Cart
                       </Button>
                     </div>

@@ -1,12 +1,16 @@
 
 import { useState } from 'react';
-import { Menu, X, ShoppingCart } from 'lucide-react';
+import { Menu, X, ShoppingCart, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { profile, signOut } = useAuth();
+  const { cartCount } = useCart();
 
   const menuItems = [
     { name: 'Home', href: '/' },
@@ -67,13 +71,40 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Cart and Mobile Menu */}
+          {/* User Actions */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingCart className="h-5 w-5 text-muthu-brown" />
-              <span className="absolute -top-2 -right-2 bg-muthu-brown text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
-                0
-              </span>
+            {/* User info */}
+            {profile && (
+              <div className="hidden md:flex items-center space-x-2">
+                <span className="text-sm text-muthu-dark-brown">
+                  {profile.role === 'admin' ? 'Admin' : 'Welcome'}
+                </span>
+                <span className="text-sm font-medium text-muthu-brown">
+                  {profile.full_name || profile.email}
+                </span>
+              </div>
+            )}
+
+            {/* Cart */}
+            <Link to="/cart">
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart className="h-5 w-5 text-muthu-brown" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-muthu-brown text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
+
+            {/* Logout */}
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={signOut}
+              className="text-muthu-brown hover:text-muthu-dark-brown"
+            >
+              <LogOut className="h-5 w-5" />
             </Button>
 
             {/* Mobile Menu Button */}
@@ -96,6 +127,17 @@ const Header = () => {
         {isMenuOpen && (
           <nav className="md:hidden mt-4 pb-4 border-t border-muthu-beige">
             <div className="flex flex-col space-y-4 pt-4">
+              {profile && (
+                <div className="px-2 py-2 border-b border-muthu-beige">
+                  <span className="text-sm text-muthu-dark-brown">
+                    {profile.role === 'admin' ? 'Admin: ' : 'Welcome, '}
+                  </span>
+                  <span className="text-sm font-medium text-muthu-brown">
+                    {profile.full_name || profile.email}
+                  </span>
+                </div>
+              )}
+              
               {menuItems.map((item) => (
                 item.href.startsWith('/') ? (
                   <Link
@@ -116,6 +158,23 @@ const Header = () => {
                   </button>
                 )
               ))}
+              
+              <Link
+                to="/cart"
+                className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Cart ({cartCount})
+              </Link>
+              
+              <button
+                onClick={signOut}
+                className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium text-left flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
             </div>
           </nav>
         )}
