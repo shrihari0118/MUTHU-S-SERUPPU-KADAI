@@ -2,42 +2,68 @@
 import { useState } from 'react';
 import { Menu, X, ShoppingCart } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Link, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
   const menuItems = [
-    { name: 'Home', href: '#home' },
-    { name: 'Shop', href: '#shop' },
-    { name: 'About', href: '#about' },
-    { name: 'Reviews', href: '#reviews' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Home', href: '/' },
+    { name: 'Shop', href: '/shop' },
+    { name: 'About', href: '/#about' },
+    { name: 'Reviews', href: '/#reviews' },
+    { name: 'Contact', href: '/#contact' },
   ];
+
+  const handleNavClick = (href: string) => {
+    setIsMenuOpen(false);
+    
+    // If it's a hash link and we're not on the home page, navigate to home first
+    if (href.includes('#') && location.pathname !== '/') {
+      window.location.href = href;
+    } else if (href.includes('#')) {
+      // If we're on the home page, smooth scroll to section
+      const sectionId = href.split('#')[1];
+      const section = document.getElementById(sectionId);
+      section?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <header className="bg-muthu-warm-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <div className="flex items-center">
+          <Link to="/" className="flex items-center">
             <h1 className="text-2xl md:text-3xl font-playfair font-bold text-muthu-brown">
               MUTHU's
             </h1>
             <span className="text-sm text-muthu-dark-brown ml-2 hidden sm:block">
               Footwear
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             {menuItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium"
-              >
-                {item.name}
-              </a>
+              item.href.startsWith('/') ? (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium"
+                >
+                  {item.name}
+                </Link>
+              ) : (
+                <button
+                  key={item.name}
+                  onClick={() => handleNavClick(item.href)}
+                  className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium"
+                >
+                  {item.name}
+                </button>
+              )
             ))}
           </nav>
 
@@ -71,14 +97,24 @@ const Header = () => {
           <nav className="md:hidden mt-4 pb-4 border-t border-muthu-beige">
             <div className="flex flex-col space-y-4 pt-4">
               {menuItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </a>
+                item.href.startsWith('/') ? (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ) : (
+                  <button
+                    key={item.name}
+                    onClick={() => handleNavClick(item.href)}
+                    className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium text-left"
+                  >
+                    {item.name}
+                  </button>
+                )
               ))}
             </div>
           </nav>

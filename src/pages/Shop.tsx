@@ -1,12 +1,21 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 const Shop = () => {
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  const [activeCategory, setActiveCategory] = useState(categoryParam || 'men');
+
+  // Update active category when URL parameter changes
+  useEffect(() => {
+    if (categoryParam) {
+      setActiveCategory(categoryParam);
+    }
+  }, [categoryParam]);
 
   const products = [
     // Men's Collection
@@ -115,16 +124,13 @@ const Shop = () => {
   ];
 
   const categories = [
-    { id: 'all', name: 'All Products', count: products.length },
     { id: 'men', name: "Men's Collection", count: products.filter(p => p.category === 'men').length },
     { id: 'women', name: "Women's Heels", count: products.filter(p => p.category === 'women').length },
     { id: 'kids', name: "Kids' Footwear", count: products.filter(p => p.category === 'kids').length },
     { id: 'sneakers', name: "Trendy Sneakers", count: products.filter(p => p.category === 'sneakers').length }
   ];
 
-  const filteredProducts = activeCategory === 'all' 
-    ? products 
-    : products.filter(product => product.category === activeCategory);
+  const filteredProducts = products.filter(product => product.category === activeCategory);
 
   return (
     <div className="min-h-screen bg-muthu-warm-white">
