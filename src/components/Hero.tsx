@@ -1,7 +1,10 @@
 
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <section id="home" className="relative bg-gradient-to-br from-muthu-beige to-muthu-light-brown min-h-screen flex items-center">
       <div className="container mx-auto px-4 py-20">
@@ -21,6 +24,7 @@ const Hero = () => {
               <Button 
                 size="lg" 
                 className="bg-muthu-brown hover:bg-muthu-dark-brown text-white px-8 py-3 text-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                onClick={() => navigate('/shop')}
               >
                 Shop Collection
               </Button>
@@ -28,6 +32,10 @@ const Hero = () => {
                 variant="outline" 
                 size="lg"
                 className="border-muthu-brown text-muthu-brown hover:bg-muthu-brown hover:text-white px-8 py-3 text-lg font-semibold transition-all duration-300"
+                onClick={() => {
+                  const aboutSection = document.getElementById('about');
+                  aboutSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
               >
                 Learn More
               </Button>

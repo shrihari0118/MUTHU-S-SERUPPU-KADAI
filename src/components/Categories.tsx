@@ -1,33 +1,45 @@
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Categories = () => {
+  const navigate = useNavigate();
+
   const categories = [
     {
       title: "Men's Collection",
       description: "Formal shoes, casual wear, and premium leather",
       image: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=400&h=300&fit=crop&crop=center",
-      count: "25+ Styles"
+      count: "25+ Styles",
+      categoryId: "men"
     },
     {
       title: "Women's Heels",
       description: "Elegant heels, flats, and party wear",
       image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=300&fit=crop&crop=center",
-      count: "30+ Styles"
+      count: "30+ Styles",
+      categoryId: "women"
     },
     {
       title: "Kids' Footwear",
       description: "Comfortable and colorful shoes for children",
       image: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=400&h=300&fit=crop&crop=center",
-      count: "20+ Styles"
+      count: "20+ Styles",
+      categoryId: "kids"
     },
     {
       title: "Trendy Sneakers",
       description: "Latest designs for sports and casual wear",
       image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=300&fit=crop&crop=center",
-      count: "15+ Styles"
+      count: "15+ Styles",
+      categoryId: "sneakers"
     }
   ];
+
+  const handleCategoryClick = (categoryId: string) => {
+    navigate(`/shop?category=${categoryId}`);
+  };
 
   return (
     <section id="shop" className="py-20 bg-muthu-warm-white">
@@ -46,6 +58,7 @@ const Categories = () => {
             <Card 
               key={index}
               className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-muthu-beige"
+              onClick={() => handleCategoryClick(category.categoryId)}
             >
               <CardContent className="p-0">
                 <div className="relative overflow-hidden rounded-t-lg">
@@ -62,9 +75,18 @@ const Categories = () => {
                   <h3 className="text-xl font-playfair font-bold text-muthu-dark-brown mb-2">
                     {category.title}
                   </h3>
-                  <p className="text-muthu-dark-brown/70">
+                  <p className="text-muthu-dark-brown/70 mb-4">
                     {category.description}
                   </p>
+                  <Button 
+                    className="w-full bg-muthu-brown hover:bg-muthu-dark-brown text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCategoryClick(category.categoryId);
+                    }}
+                  >
+                    View Products
+                  </Button>
                 </div>
               </CardContent>
             </Card>
