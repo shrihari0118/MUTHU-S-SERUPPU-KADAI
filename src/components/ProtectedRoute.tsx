@@ -16,23 +16,36 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, profile, loading } = useAuth();
 
   useEffect(() => {
-    if (loading) return;
+    console.log('ProtectedRoute - user:', user?.email, 'profile:', profile?.role, 'loading:', loading);
+    
+    if (loading) {
+      console.log('Still loading, waiting...');
+      return;
+    }
+
+    const currentPath = window.location.pathname;
+    console.log('Current path:', currentPath);
 
     if (requireAuth && !user) {
+      console.log('User not authenticated, redirecting to auth');
       window.location.href = '/auth';
       return;
     }
 
     if (adminOnly && profile?.role !== 'admin') {
+      console.log('User is not admin, redirecting to home');
       window.location.href = '/';
       return;
     }
 
     // If user is logged in and trying to access auth page, redirect based on role
-    if (user && window.location.pathname === '/auth') {
+    if (user && currentPath === '/auth') {
+      console.log('User is logged in but on auth page, redirecting...');
       if (profile?.role === 'admin') {
-        window.location.href = '/admin';
+        console.log('Redirecting admin to admin page');
+        window.location.href = '/';
       } else {
+        console.log('Redirecting customer to home page');
         window.location.href = '/';
       }
     }

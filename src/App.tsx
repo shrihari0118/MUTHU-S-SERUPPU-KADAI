@@ -24,7 +24,10 @@ const App = () => (
         <AuthProvider>
           <CartProvider>
             <Routes>
+              {/* Auth page is NOT protected - anyone can access it */}
               <Route path="/auth" element={<Auth />} />
+              
+              {/* All other routes are protected */}
               <Route path="/" element={
                 <ProtectedRoute>
                   <Index />
@@ -40,6 +43,7 @@ const App = () => (
                   <Cart />
                 </ProtectedRoute>
               } />
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

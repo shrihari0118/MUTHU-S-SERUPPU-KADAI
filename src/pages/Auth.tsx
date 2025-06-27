@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,15 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, profile } = useAuth();
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user && profile) {
+      console.log('User already logged in, redirecting...');
+      window.location.href = '/';
+    }
+  }, [user, profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,29 +29,35 @@ const Auth = () => {
 
     try {
       if (isLogin) {
+        console.log('Attempting login...');
         const { error } = await signIn(email, password);
         if (error) {
+          console.error('Login error:', error);
           toast({
             title: "Login Failed",
             description: error.message,
             variant: "destructive",
           });
         } else {
+          console.log('Login successful, waiting for redirect...');
           toast({
             title: "Welcome back!",
             description: "You have been successfully logged in.",
           });
-          // Redirect will be handled by the auth context
+          // The redirect will be handled by the auth context and ProtectedRoute
         }
       } else {
+        console.log('Attempting signup...');
         const { error } = await signUp(email, password, fullName);
         if (error) {
+          console.error('Signup error:', error);
           toast({
             title: "Signup Failed",
             description: error.message,
             variant: "destructive",
           });
         } else {
+          console.log('Signup successful');
           toast({
             title: "Account Created!",
             description: "Please check your email to verify your account.",
@@ -51,6 +65,7 @@ const Auth = () => {
         }
       }
     } catch (error) {
+      console.error('Auth error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
