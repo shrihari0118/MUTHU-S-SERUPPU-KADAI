@@ -18,7 +18,7 @@ const Auth = () => {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user && profile) {
-      console.log('User already logged in, redirecting...');
+      console.log('User already logged in, redirecting to home...');
       window.location.href = '/';
     }
   }, [user, profile]);
@@ -27,33 +27,37 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
+    console.log('Form submitted - Login mode:', isLogin);
+
     try {
       if (isLogin) {
-        console.log('Attempting login...');
+        console.log('Attempting login with email:', email);
         const { error } = await signIn(email, password);
+        
         if (error) {
-          console.error('Login error:', error);
+          console.error('Login failed:', error);
           toast({
             title: "Login Failed",
-            description: error.message,
+            description: error.message || "Invalid email or password",
             variant: "destructive",
           });
         } else {
-          console.log('Login successful, waiting for redirect...');
+          console.log('Login successful, redirecting...');
           toast({
             title: "Welcome back!",
             description: "You have been successfully logged in.",
           });
-          // The redirect will be handled by the auth context and ProtectedRoute
+          // The signIn function handles the redirect
         }
       } else {
-        console.log('Attempting signup...');
+        console.log('Attempting signup with email:', email);
         const { error } = await signUp(email, password, fullName);
+        
         if (error) {
-          console.error('Signup error:', error);
+          console.error('Signup failed:', error);
           toast({
             title: "Signup Failed",
-            description: error.message,
+            description: error.message || "Failed to create account",
             variant: "destructive",
           });
         } else {
@@ -62,6 +66,11 @@ const Auth = () => {
             title: "Account Created!",
             description: "Please check your email to verify your account.",
           });
+          // Reset form
+          setEmail('');
+          setPassword('');
+          setFullName('');
+          setIsLogin(true);
         }
       }
     } catch (error) {
@@ -110,6 +119,7 @@ const Auth = () => {
                     onChange={(e) => setFullName(e.target.value)}
                     required={!isLogin}
                     className="border-muthu-beige focus:border-muthu-brown"
+                    placeholder="Enter your full name"
                   />
                 </div>
               )}
@@ -123,6 +133,7 @@ const Auth = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="border-muthu-beige focus:border-muthu-brown"
+                  placeholder="Enter your email"
                 />
               </div>
               
@@ -135,6 +146,8 @@ const Auth = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="border-muthu-beige focus:border-muthu-brown"
+                  placeholder="Enter your password"
+                  minLength={6}
                 />
               </div>
 
@@ -150,8 +163,14 @@ const Auth = () => {
             <div className="mt-6 text-center">
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setEmail('');
+                  setPassword('');
+                  setFullName('');
+                }}
                 className="text-muthu-brown hover:text-muthu-dark-brown transition-colors"
+                disabled={loading}
               >
                 {isLogin 
                   ? "Don't have an account? Sign up" 

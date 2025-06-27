@@ -26,31 +26,29 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const currentPath = window.location.pathname;
     console.log('Current path:', currentPath);
 
+    // If authentication is required but user is not logged in
     if (requireAuth && !user) {
       console.log('User not authenticated, redirecting to auth');
       window.location.href = '/auth';
       return;
     }
 
+    // If admin access is required but user is not admin
     if (adminOnly && profile?.role !== 'admin') {
       console.log('User is not admin, redirecting to home');
       window.location.href = '/';
       return;
     }
 
-    // If user is logged in and trying to access auth page, redirect based on role
-    if (user && currentPath === '/auth') {
-      console.log('User is logged in but on auth page, redirecting...');
-      if (profile?.role === 'admin') {
-        console.log('Redirecting admin to admin page');
-        window.location.href = '/';
-      } else {
-        console.log('Redirecting customer to home page');
-        window.location.href = '/';
-      }
+    // If user is authenticated and on auth page, redirect to home
+    if (user && profile && currentPath === '/auth') {
+      console.log('Authenticated user on auth page, redirecting to home');
+      window.location.href = '/';
+      return;
     }
   }, [user, profile, loading, requireAuth, adminOnly]);
 
+  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-muthu-warm-white flex items-center justify-center">
@@ -64,6 +62,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
+  // Show children if all conditions are met
   return <>{children}</>;
 };
 

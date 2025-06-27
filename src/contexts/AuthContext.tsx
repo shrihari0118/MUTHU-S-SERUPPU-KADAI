@@ -30,6 +30,15 @@ export const useAuth = () => {
   return context;
 };
 
+// Cleanup function to clear any leftover auth state
+const cleanupAuthState = () => {
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -47,11 +56,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('Error fetching profile:', error);
-        throw error;
+        return;
       }
       
       console.log('Profile fetched successfully:', data);
-      // Ensure role is properly typed
       const profileData: Profile = {
         ...data,
         role: data.role as 'admin' | 'customer'
@@ -63,17 +71,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Use setTimeout to prevent potential deadlocks
+          // Defer profile fetching to prevent deadlocks
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            if (mounted) {
+              fetchProfile(session.user.id);
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -84,6 +99,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
       console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
@@ -93,12 +110,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Attempting sign in for:', email);
+      
+      // Clean up any existing auth state
+      cleanupAuthState();
+      
+      // Attempt to sign out globally first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        console.log('Global signout failed, continuing...');
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -106,11 +137,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('Sign in error:', error);
-      } else {
-        console.log('Sign in successful:', data.user?.email);
+        return { error };
       }
       
-      return { error };
+      console.log('Sign in successful:', data.user?.email);
+      
+      // Force page refresh to ensure clean state
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
+      
+      return { error: null };
     } catch (error) {
       console.error('Sign in exception:', error);
       return { error };
@@ -120,6 +157,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
       console.log('Attempting sign up for:', email);
+      
+      // Clean up any existing auth state
+      cleanupAuthState();
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -147,10 +188,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       console.log('Signing out user');
-      await supabase.auth.signOut();
+      cleanupAuthState();
+      await supabase.auth.signOut({ scope: 'global' });
       window.location.href = '/auth';
     } catch (error) {
       console.error('Error signing out:', error);
+      window.location.href = '/auth';
     }
   };
 
