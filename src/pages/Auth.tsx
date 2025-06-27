@@ -36,11 +36,27 @@ const Auth = () => {
         
         if (error) {
           console.error('Login failed:', error);
-          toast({
-            title: "Login Failed",
-            description: error.message || "Invalid email or password",
-            variant: "destructive",
-          });
+          
+          // Handle specific error cases
+          if (error.message?.includes('Email not confirmed')) {
+            toast({
+              title: "Email Not Confirmed",
+              description: "Please check your email and click the confirmation link before logging in. Check your spam folder if you don't see it.",
+              variant: "destructive",
+            });
+          } else if (error.message?.includes('Invalid login credentials')) {
+            toast({
+              title: "Invalid Credentials",
+              description: "Please check your email and password and try again.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Login Failed",
+              description: error.message || "Invalid email or password",
+              variant: "destructive",
+            });
+          }
         } else {
           console.log('Login successful, redirecting...');
           toast({
@@ -63,10 +79,10 @@ const Auth = () => {
         } else {
           console.log('Signup successful');
           toast({
-            title: "Account Created!",
-            description: "Please check your email to verify your account.",
+            title: "Account Created Successfully!",
+            description: "Please check your email for a confirmation link. You'll need to click it before you can log in.",
           });
-          // Reset form
+          // Reset form and switch to login
           setEmail('');
           setPassword('');
           setFullName('');
@@ -178,6 +194,15 @@ const Auth = () => {
                 }
               </button>
             </div>
+
+            {/* Help text for email confirmation */}
+            {isLogin && (
+              <div className="mt-4 p-3 bg-muthu-beige/20 rounded-lg">
+                <p className="text-sm text-muthu-dark-brown/70 text-center">
+                  Having trouble signing in? Make sure you've confirmed your email address by clicking the link in your confirmation email.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
