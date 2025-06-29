@@ -1,14 +1,14 @@
-
 import { useState } from 'react';
 import { Menu, X, ShoppingCart, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const { cartCount } = useCart();
 
@@ -22,15 +22,32 @@ const Header = () => {
 
   const handleNavClick = (href: string) => {
     setIsMenuOpen(false);
-    
-    // If it's a hash link and we're not on the home page, navigate to home first
-    if (href.includes('#') && location.pathname !== '/') {
-      window.location.href = href;
-    } else if (href.includes('#')) {
-      // If we're on the home page, smooth scroll to section
+
+    const isHashLink = href.includes('#');
+    const isHome = href === '/';
+
+    if (isHashLink) {
       const sectionId = href.split('#')[1];
-      const section = document.getElementById(sectionId);
-      section?.scrollIntoView({ behavior: 'smooth' });
+
+      if (location.pathname !== '/') {
+        navigate('/');
+        setTimeout(() => {
+          const section = document.getElementById(sectionId);
+          section?.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      } else {
+        const section = document.getElementById(sectionId);
+        section?.scrollIntoView({ behavior: 'smooth' });
+      }
+
+    } else if (isHome) {
+      // Even if on '/', force hash to be removed and scroll to top
+      navigate('/', { replace: true }); // clears hash
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+    } else {
+      navigate(href); // for /shop or other routes
     }
   };
 
@@ -51,29 +68,18 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             {menuItems.map((item) => (
-              item.href.startsWith('/') ? (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium"
-                >
-                  {item.name}
-                </Link>
-              ) : (
-                <button
-                  key={item.name}
-                  onClick={() => handleNavClick(item.href)}
-                  className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium"
-                >
-                  {item.name}
-                </button>
-              )
+              <button
+                key={item.name}
+                onClick={() => handleNavClick(item.href)}
+                className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium"
+              >
+                {item.name}
+              </button>
             ))}
           </nav>
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
-            {/* User info */}
             {profile && (
               <div className="hidden md:flex items-center space-x-2">
                 <span className="text-sm text-muthu-dark-brown">
@@ -85,7 +91,6 @@ const Header = () => {
               </div>
             )}
 
-            {/* Cart */}
             <Link to="/cart">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5 text-muthu-brown" />
@@ -97,7 +102,6 @@ const Header = () => {
               </Button>
             </Link>
 
-            {/* Logout */}
             <Button 
               variant="ghost" 
               size="icon"
@@ -107,7 +111,6 @@ const Header = () => {
               <LogOut className="h-5 w-5" />
             </Button>
 
-            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
@@ -137,28 +140,17 @@ const Header = () => {
                   </span>
                 </div>
               )}
-              
+
               {menuItems.map((item) => (
-                item.href.startsWith('/') ? (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ) : (
-                  <button
-                    key={item.name}
-                    onClick={() => handleNavClick(item.href)}
-                    className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium text-left"
-                  >
-                    {item.name}
-                  </button>
-                )
+                <button
+                  key={item.name}
+                  onClick={() => handleNavClick(item.href)}
+                  className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium text-left"
+                >
+                  {item.name}
+                </button>
               ))}
-              
+
               <Link
                 to="/cart"
                 className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium flex items-center gap-2"
@@ -167,7 +159,7 @@ const Header = () => {
                 <ShoppingCart className="h-4 w-4" />
                 Cart ({cartCount})
               </Link>
-              
+
               <button
                 onClick={signOut}
                 className="text-muthu-dark-brown hover:text-muthu-brown transition-colors duration-200 font-medium text-left flex items-center gap-2"
