@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +21,7 @@ interface Product {
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const categoryParam = searchParams.get('category');
   const [activeCategory, setActiveCategory] = useState(categoryParam || 'men');
   const [products, setProducts] = useState<Product[]>([]);
@@ -72,6 +73,10 @@ const Shop = () => {
 
   const handleAddToCart = async (productId: string, productName: string) => {
     await addToCart(productId);
+  };
+
+  const handleProductClick = (productId: string) => {
+    navigate(`/product/${productId}`);
   };
 
   if (loading) {
@@ -135,13 +140,17 @@ const Shop = () => {
                         src={product.image_url}
                         alt={product.name}
                         className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
+                        onClick={() => handleProductClick(product.id)}
                       />
                       <div className="absolute top-4 right-4 bg-muthu-brown text-white px-3 py-1 rounded-full text-sm font-semibold">
                         ₹{product.price}
                       </div>
                     </div>
                     <div className="p-6">
-                      <h3 className="text-xl font-playfair font-bold text-muthu-dark-brown mb-2">
+                      <h3 
+                        className="text-xl font-playfair font-bold text-muthu-dark-brown mb-2 cursor-pointer hover:text-muthu-brown transition-colors"
+                        onClick={() => handleProductClick(product.id)}
+                      >
                         {product.name}
                       </h3>
                       <p className="text-muthu-dark-brown/70 mb-4 text-sm">
