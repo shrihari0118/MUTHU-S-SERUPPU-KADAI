@@ -9,6 +9,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from '@/components/ui/use-toast';
 
+interface ProductColor {
+  name: string;
+  hex: string;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -17,6 +22,7 @@ interface Product {
   image_url: string;
   category: string;
   sizes: string[];
+  colors: ProductColor[];
 }
 
 const Shop = () => {
@@ -72,7 +78,12 @@ const Shop = () => {
   const categoryCount = (categoryId: string) => products.filter(p => p.category === categoryId).length;
 
   const handleAddToCart = async (productId: string, productName: string) => {
-    await addToCart(productId);
+    // For shop page, add with default values - user can modify in product details
+    const product = products.find(p => p.id === productId);
+    const defaultSize = product?.sizes?.[0] || 'One Size';
+    const defaultColor = product?.colors?.[0]?.name || 'Default';
+    
+    await addToCart(productId, defaultSize, defaultColor);
   };
 
   const handleProductClick = (productId: string) => {
@@ -156,6 +167,29 @@ const Shop = () => {
                       <p className="text-muthu-dark-brown/70 mb-4 text-sm">
                         {product.description}
                       </p>
+                      
+                      {/* Colors Preview */}
+                      {product.colors && product.colors.length > 1 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-muthu-dark-brown/60 mb-2">Colors:</p>
+                          <div className="flex gap-1">
+                            {product.colors.slice(0, 4).map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-4 h-4 rounded-full border border-gray-300"
+                                style={{ backgroundColor: color.hex }}
+                                title={color.name}
+                              />
+                            ))}
+                            {product.colors.length > 4 && (
+                              <span className="text-xs text-muthu-dark-brown/60 ml-1">
+                                +{product.colors.length - 4}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="mb-4">
                         <p className="text-sm text-muthu-dark-brown/60 mb-2">Available Sizes:</p>
                         <div className="flex flex-wrap gap-2">

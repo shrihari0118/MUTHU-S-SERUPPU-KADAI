@@ -15,6 +15,8 @@ export type Database = {
           id: string
           product_id: string
           quantity: number | null
+          selected_color: string | null
+          selected_size: string | null
           updated_at: string | null
           user_id: string
         }
@@ -23,6 +25,8 @@ export type Database = {
           id?: string
           product_id: string
           quantity?: number | null
+          selected_color?: string | null
+          selected_size?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -31,6 +35,8 @@ export type Database = {
           id?: string
           product_id?: string
           quantity?: number | null
+          selected_color?: string | null
+          selected_size?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -68,10 +74,12 @@ export type Database = {
       products: {
         Row: {
           category: string
+          colors: Json | null
           created_at: string | null
           description: string | null
           id: string
           image_url: string | null
+          images: Json | null
           name: string
           price: number
           sizes: string[] | null
@@ -79,10 +87,12 @@ export type Database = {
         }
         Insert: {
           category: string
+          colors?: Json | null
           created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
+          images?: Json | null
           name: string
           price: number
           sizes?: string[] | null
@@ -90,10 +100,12 @@ export type Database = {
         }
         Update: {
           category?: string
+          colors?: Json | null
           created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
+          images?: Json | null
           name?: string
           price?: number
           sizes?: string[] | null

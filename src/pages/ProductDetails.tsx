@@ -4,12 +4,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, StarHalf, Truck, ShieldCheck, RotateCcw, Heart } from 'lucide-react';
+import { Star, StarHalf, Truck, ShieldCheck, RotateCcw, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from '@/components/ui/use-toast';
+
+interface ProductColor {
+  name: string;
+  hex: string;
+}
+
+interface ProductImage {
+  url: string;
+  alt: string;
+  color: string;
+}
 
 interface Product {
   id: string;
@@ -19,6 +30,8 @@ interface Product {
   image_url: string;
   category: string;
   sizes: string[];
+  colors: ProductColor[];
+  images: ProductImage[];
 }
 
 interface Review {
@@ -35,6 +48,8 @@ const ProductDetails = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [pincode, setPincode] = useState('');
   const [deliveryInfo, setDeliveryInfo] = useState('');
@@ -83,6 +98,12 @@ const ProductDetails = () => {
         .single();
 
       if (error) throw error;
+      
+      // Set default color if available
+      if (data.colors && data.colors.length > 0) {
+        setSelectedColor(data.colors[0].name);
+      }
+      
       setProduct(data);
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -96,6 +117,16 @@ const ProductDetails = () => {
     }
   };
 
+  const getCurrentImages = () => {
+    if (!product) return [];
+    return product.images.filter(img => img.color === selectedColor || img.color === 'Default');
+  };
+
+  const handleColorChange = (colorName: string) => {
+    setSelectedColor(colorName);
+    setCurrentImageIndex(0); // Reset to first image when color changes
+  };
+
   const handleAddToCart = async () => {
     if (!selectedSize && product?.sizes.length > 0) {
       toast({
@@ -107,7 +138,7 @@ const ProductDetails = () => {
     }
 
     if (product) {
-      await addToCart(product.id);
+      await addToCart(product.id, selectedSize, selectedColor);
     }
   };
 
@@ -154,6 +185,16 @@ const ProductDetails = () => {
     return stars;
   };
 
+  const nextImage = () => {
+    const images = getCurrentImages();
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    const images = getCurrentImages();
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-muthu-warm-white">
@@ -185,6 +226,8 @@ const ProductDetails = () => {
     );
   }
 
+  const currentImages = getCurrentImages();
+
   return (
     <div className="min-h-screen bg-muthu-warm-white">
       <Header />
@@ -209,13 +252,54 @@ const ProductDetails = () => {
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Product Images */}
             <div className="space-y-4">
-              <div className="aspect-square rounded-lg overflow-hidden bg-white shadow-lg">
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative aspect-square rounded-lg overflow-hidden bg-white shadow-lg">
+                {currentImages.length > 0 && (
+                  <>
+                    <img
+                      src={currentImages[currentImageIndex]?.url || product.image_url}
+                      alt={currentImages[currentImageIndex]?.alt || product.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {currentImages.length > 1 && (
+                      <>
+                        <button
+                          onClick={prevImage}
+                          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={nextImage}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
+
+              {/* Image Thumbnails */}
+              {currentImages.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto">
+                  {currentImages.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                        currentImageIndex === index ? 'border-muthu-brown' : 'border-gray-200'
+                      }`}
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.alt}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Product Info */}
@@ -242,6 +326,32 @@ const ProductDetails = () => {
                   {product.category}
                 </Badge>
               </div>
+
+              {/* Colors */}
+              {product.colors && product.colors.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-muthu-dark-brown mb-3">Color:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {product.colors.map((color) => (
+                      <button
+                        key={color.name}
+                        onClick={() => handleColorChange(color.name)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
+                          selectedColor === color.name
+                            ? 'border-muthu-brown bg-muthu-beige'
+                            : 'border-gray-200 hover:border-muthu-brown'
+                        }`}
+                      >
+                        <div
+                          className="w-4 h-4 rounded-full border border-gray-300"
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        <span className="text-sm">{color.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Sizes */}
               {product.sizes.length > 0 && (
@@ -362,7 +472,7 @@ const ProductDetails = () => {
                     <li>Comfortable fit for all-day wear</li>
                     <li>Durable construction</li>
                     <li>Easy to clean and maintain</li>
-                    <li>Available in multiple sizes</li>
+                    <li>Available in multiple sizes and colors</li>
                   </ul>
                 </div>
               </CardContent>

@@ -8,6 +8,8 @@ interface CartItem {
   id: string;
   product_id: string;
   quantity: number;
+  selected_size: string | null;
+  selected_color: string | null;
   products: {
     id: string;
     name: string;
@@ -20,9 +22,9 @@ interface CartContextType {
   cartItems: CartItem[];
   cartCount: number;
   loading: boolean;
-  addToCart: (productId: string) => Promise<void>;
-  updateQuantity: (productId: string, quantity: number) => Promise<void>;
-  removeFromCart: (productId: string) => Promise<void>;
+  addToCart: (productId: string, selectedSize?: string, selectedColor?: string) => Promise<void>;
+  updateQuantity: (productId: string, quantity: number, selectedSize?: string, selectedColor?: string) => Promise<void>;
+  removeFromCart: (productId: string, selectedSize?: string, selectedColor?: string) => Promise<void>;
   clearCart: () => Promise<void>;
 }
 
@@ -57,6 +59,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id,
           product_id,
           quantity,
+          selected_size,
+          selected_color,
           products (
             id,
             name,
@@ -84,7 +88,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchCartItems();
   }, [user]);
 
-  const addToCart = async (productId: string) => {
+  const addToCart = async (productId: string, selectedSize?: string, selectedColor?: string) => {
     if (!user) {
       toast({
         title: "Please login",
@@ -94,12 +98,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    const size = selectedSize || 'One Size';
+    const color = selectedColor || 'Default';
+
     try {
-      // Check if item already exists in cart
-      const existingItem = cartItems.find(item => item.product_id === productId);
+      // Check if item with same product, size, and color already exists
+      const existingItem = cartItems.find(item => 
+        item.product_id === productId && 
+        item.selected_size === size && 
+        item.selected_color === color
+      );
       
       if (existingItem) {
-        await updateQuantity(productId, existingItem.quantity + 1);
+        await updateQuantity(productId, existingItem.quantity + 1, size, color);
         return;
       }
 
@@ -109,6 +120,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           user_id: user.id,
           product_id: productId,
           quantity: 1,
+          selected_size: size,
+          selected_color: color,
         });
 
       if (error) throw error;
@@ -129,15 +142,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateQuantity = async (productId: string, quantity: number) => {
+  const updateQuantity = async (productId: string, quantity: number, selectedSize?: string, selectedColor?: string) => {
     if (!user || quantity < 1) return;
+
+    const size = selectedSize || 'One Size';
+    const color = selectedColor || 'Default';
 
     try {
       const { error } = await supabase
         .from('cart_items')
         .update({ quantity })
         .eq('user_id', user.id)
-        .eq('product_id', productId);
+        .eq('product_id', productId)
+        .eq('selected_size', size)
+        .eq('selected_color', color);
 
       if (error) throw error;
       fetchCartItems();
@@ -151,15 +169,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const removeFromCart = async (productId: string) => {
+  const removeFromCart = async (productId: string, selectedSize?: string, selectedColor?: string) => {
     if (!user) return;
+
+    const size = selectedSize || 'One Size';
+    const color = selectedColor || 'Default';
 
     try {
       const { error } = await supabase
         .from('cart_items')
         .delete()
         .eq('user_id', user.id)
-        .eq('product_id', productId);
+        .eq('product_id', productId)
+        .eq('selected_size', size)
+        .eq('selected_color', color);
 
       if (error) throw error;
       fetchCartItems();
