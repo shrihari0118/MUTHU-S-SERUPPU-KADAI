@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -99,11 +98,11 @@ const ProductDetails = () => {
 
       if (error) throw error;
       
-      // Cast the Json types to proper TypeScript types
+      // Cast the Json types to proper TypeScript types with proper type conversion
       const productData: Product = {
         ...data,
-        colors: (data.colors as ProductColor[]) || [],
-        images: (data.images as ProductImage[]) || []
+        colors: (data.colors as unknown as ProductColor[]) || [],
+        images: (data.images as unknown as ProductImage[]) || []
       };
       
       // Set default color if available

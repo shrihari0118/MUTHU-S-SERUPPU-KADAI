@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,10 +50,10 @@ const Shop = () => {
 
       if (error) throw error;
       
-      // Cast the Json types to proper TypeScript types
+      // Cast the Json types to proper TypeScript types with proper type conversion
       const productsData: Product[] = (data || []).map(product => ({
         ...product,
-        colors: (product.colors as ProductColor[]) || [],
+        colors: (product.colors as unknown as ProductColor[]) || [],
         sizes: product.sizes || []
       }));
       
