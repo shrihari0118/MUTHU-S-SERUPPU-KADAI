@@ -17,6 +17,10 @@ const Cart = () => {
     navigate(`/product/${productId}`);
   };
 
+  const getItemKey = (item: any) => {
+    return `${item.product_id}-${item.selected_size || 'One Size'}-${item.selected_color || 'Default'}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-muthu-warm-white">
@@ -63,7 +67,7 @@ const Cart = () => {
               <div className="max-w-4xl mx-auto">
                 <div className="space-y-4 mb-8">
                   {cartItems.map((item) => (
-                    <Card key={`${item.product_id}-${item.selected_size}-${item.selected_color}`} className="border-muthu-beige">
+                    <Card key={getItemKey(item)} className="border-muthu-beige">
                       <CardContent className="p-6">
                         <div className="flex items-center gap-6">
                           <img

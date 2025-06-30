@@ -110,10 +110,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       );
       
       if (existingItem) {
+        // Update quantity of existing item
         await updateQuantity(productId, existingItem.quantity + 1, size, color);
         return;
       }
 
+      // Add new item to cart
       const { error } = await supabase
         .from('cart_items')
         .insert({
@@ -131,7 +133,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Product has been added to your cart",
       });
 
-      fetchCartItems();
+      await fetchCartItems();
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast({
@@ -158,7 +160,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('selected_color', color);
 
       if (error) throw error;
-      fetchCartItems();
+      await fetchCartItems();
     } catch (error) {
       console.error('Error updating quantity:', error);
       toast({
@@ -185,7 +187,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('selected_color', color);
 
       if (error) throw error;
-      fetchCartItems();
+      await fetchCartItems();
       
       toast({
         title: "Removed from cart",
@@ -211,7 +213,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('user_id', user.id);
 
       if (error) throw error;
-      fetchCartItems();
+      await fetchCartItems();
     } catch (error) {
       console.error('Error clearing cart:', error);
     }
