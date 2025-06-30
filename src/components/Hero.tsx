@@ -12,7 +12,7 @@ const footwearImages = [
     alt: "Kids Footwear",
   },
   {
-    src: "https://shorturl.at/SaKdH",
+    src: "https://images.unsplash.com/photo-1655002903356-c61af13bb8ed?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     alt: "Heels",
   },
   {
@@ -29,21 +29,15 @@ const Hero = () => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const [fade, setFade] = useState(true);
-
-useEffect(() => {
-  const interval = setInterval(() => {
-    setFade(false); // start fade-out
-
-    setTimeout(() => {
+  /* ─────────────────────────────
+     Auto‑advance every 3 seconds */
+  useEffect(() => {
+    const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % footwearImages.length);
-      setFade(true); // fade back in after image change
-    }, 500); // half the duration of total transition
-  }, 3000);
+    }, 3000);
 
-  return () => clearInterval(interval);
-}, []);
-
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section
@@ -52,7 +46,8 @@ useEffect(() => {
     >
       <div className="container mx-auto px-4 py-20">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Text Content */}
+          {/* ────────────────────────
+              Text Content            */}
           <div className="space-y-6 animate-fade-in">
             <h1 className="text-4xl md:text-6xl font-playfair font-bold text-muthu-dark-brown leading-tight">
               Walk with Confidence,
@@ -87,19 +82,32 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Rotating Hero Image */}
+          {/* ────────────────────────
+              Sliding Hero Image      */}
           <div className="relative">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform ">
-              <img
-  key={footwearImages[currentIndex].src}
-  src={footwearImages[currentIndex].src}
-  alt={footwearImages[currentIndex].alt}
-  className={`w-full h-80 md:h-96 object-cover rounded-lg transition-opacity duration-1000 ease-in-out ${
-    fade ? "opacity-100" : "opacity-0"
-  }`}
-/>
+            {/* Outer “photo card” */}
+            <div className="bg-white rounded-2xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform">
 
+              {/* Viewport */}
+              <div className="overflow-hidden w-full h-80 md:h-96 rounded-lg">
+                {/* Sliding track */}
+                <div
+                  className="flex transition-transform duration-1000 ease-linear"
+                  style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+                >
+                  {footwearImages.map(({ src, alt }) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt={alt}
+                      className="w-full flex-shrink-0 object-cover h-80 md:h-96"
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
+
+            {/* Style badge */}
             <div className="absolute -bottom-4 -left-4 bg-muthu-brown text-white p-4 rounded-xl shadow-lg">
               <p className="font-bold text-lg">50+ Styles</p>
               <p className="text-sm opacity-90">Available Now</p>
