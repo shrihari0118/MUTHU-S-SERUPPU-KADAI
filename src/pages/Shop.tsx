@@ -50,7 +50,15 @@ const Shop = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProducts(data || []);
+      
+      // Cast the Json types to proper TypeScript types
+      const productsData: Product[] = (data || []).map(product => ({
+        ...product,
+        colors: (product.colors as ProductColor[]) || [],
+        sizes: product.sizes || []
+      }));
+      
+      setProducts(productsData);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast({

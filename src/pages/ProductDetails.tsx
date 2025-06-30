@@ -99,12 +99,19 @@ const ProductDetails = () => {
 
       if (error) throw error;
       
+      // Cast the Json types to proper TypeScript types
+      const productData: Product = {
+        ...data,
+        colors: (data.colors as ProductColor[]) || [],
+        images: (data.images as ProductImage[]) || []
+      };
+      
       // Set default color if available
-      if (data.colors && data.colors.length > 0) {
-        setSelectedColor(data.colors[0].name);
+      if (productData.colors && productData.colors.length > 0) {
+        setSelectedColor(productData.colors[0].name);
       }
       
-      setProduct(data);
+      setProduct(productData);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
