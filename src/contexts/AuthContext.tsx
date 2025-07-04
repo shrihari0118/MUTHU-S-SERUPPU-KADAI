@@ -120,16 +120,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Attempting sign in for:', email);
       
-      // Clean up any existing auth state
-      cleanupAuthState();
-      
-      // Attempt to sign out globally first
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        console.log('Global signout failed, continuing...');
-      }
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -141,12 +131,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       console.log('Sign in successful:', data.user?.email);
-      
-      // Force page refresh to ensure clean state
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 100);
-      
       return { error: null };
     } catch (error) {
       console.error('Sign in exception:', error);
