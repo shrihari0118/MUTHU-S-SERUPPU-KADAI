@@ -62,10 +62,13 @@ const Auth = () => {
         } else {
           console.log('Login successful, redirecting...');
           toast({
-            title: "Welcome back!",
+            title: "Welcome back: Successfully logged in",
             description: "You have been successfully logged in.",
           });
-          // The signIn function handles the redirect
+          // Redirect to homepage after successful login
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1000);
         }
       } else {
         console.log('Attempting signup with email:', email);
@@ -202,56 +205,12 @@ const Auth = () => {
               <div className="mt-4 text-center">
                 <button
                   type="button"
-                  onClick={() => setShowResetPassword(!showResetPassword)}
+                  onClick={() => window.location.href = '/forgot-password'}
                   className="text-sm text-muthu-brown hover:text-muthu-dark-brown transition-colors"
                   disabled={loading}
                 >
                   Forgot your password?
                 </button>
-                
-                {showResetPassword && (
-                  <div className="mt-2 p-3 bg-muthu-beige/20 rounded-lg">
-                    <p className="text-sm text-muthu-dark-brown/70 mb-2">
-                      Enter your email to reset your password:
-                    </p>
-                    <div className="flex gap-2">
-                      <Input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="text-sm"
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="bg-muthu-brown hover:bg-muthu-dark-brown text-white"
-                        onClick={async () => {
-                          if (email) {
-                            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                              redirectTo: `${window.location.origin}/auth`
-                            });
-                            if (error) {
-                              toast({
-                                title: "Error",
-                                description: error.message,
-                                variant: "destructive",
-                              });
-                            } else {
-                              toast({
-                                title: "Password Reset Sent",
-                                description: "Check your email for a password reset link.",
-                              });
-                              setShowResetPassword(false);
-                            }
-                          }
-                        }}
-                      >
-                        Send
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
