@@ -88,6 +88,28 @@ const ResetPassword = () => {
     setLoading(true);
 
     try {
+      // First, get the session from URL params
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        // Set the session first
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+        
+        if (sessionError) {
+          toast({
+            title: "Error",
+            description: "Invalid or expired reset link",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -103,6 +125,10 @@ const ResetPassword = () => {
           title: "Success",
           description: "Your password has been successfully updated. You can now log in with your new password.",
         });
+        
+        // Sign out to ensure clean state
+        await supabase.auth.signOut();
+        
         // Redirect to auth page after success
         setTimeout(() => {
           window.location.href = '/auth';
