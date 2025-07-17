@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,6 +14,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const { signIn, signUp, user, profile } = useAuth();
 
   // Redirect if user is already logged in
@@ -194,6 +196,64 @@ const Auth = () => {
                 }
               </button>
             </div>
+
+            {/* Password reset option */}
+            {isLogin && (
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowResetPassword(!showResetPassword)}
+                  className="text-sm text-muthu-brown hover:text-muthu-dark-brown transition-colors"
+                  disabled={loading}
+                >
+                  Forgot your password?
+                </button>
+                
+                {showResetPassword && (
+                  <div className="mt-2 p-3 bg-muthu-beige/20 rounded-lg">
+                    <p className="text-sm text-muthu-dark-brown/70 mb-2">
+                      Enter your email to reset your password:
+                    </p>
+                    <div className="flex gap-2">
+                      <Input
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="text-sm"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="bg-muthu-brown hover:bg-muthu-dark-brown text-white"
+                        onClick={async () => {
+                          if (email) {
+                            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                              redirectTo: `${window.location.origin}/auth`
+                            });
+                            if (error) {
+                              toast({
+                                title: "Error",
+                                description: error.message,
+                                variant: "destructive",
+                              });
+                            } else {
+                              toast({
+                                title: "Password Reset Sent",
+                                description: "Check your email for a password reset link.",
+                              });
+                              setShowResetPassword(false);
+                            }
+                          }
+                        }}
+                      >
+                        Send
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Help text for email confirmation */}
             {isLogin && (
